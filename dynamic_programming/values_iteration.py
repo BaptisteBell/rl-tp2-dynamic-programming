@@ -112,5 +112,19 @@ def stochastic_grid_world_value_iteration(
 ) -> np.ndarray:
     values = np.zeros((4, 4))
     # BEGIN SOLUTION
+    for _ in range(max_iter):
+        old_values = values.copy()
+        delta = 0
+        for r in range(env.height):
+            row = env.height - r - 1
+            for col in range(env.width):
+                state = (row, col)
+                if env.grid[state] in {"W", "P", "N"}:
+                    continue
+                d = value_iteration_per_state(env, values, gamma, old_values, delta)
+                delta = max(delta, d)
+        if delta < theta:
+            break
+        old_values = values
     # END SOLUTION
     return values
