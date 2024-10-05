@@ -79,6 +79,7 @@ def grid_world_value_iteration(
                 convergence = max(convergence, abs(values[state] - old_values[state]))
         if convergence < theta:
             break
+        old_values = values
 
     # END SOLUTION
     return values
