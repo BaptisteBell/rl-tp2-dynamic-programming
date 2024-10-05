@@ -26,6 +26,23 @@ def mdp_value_iteration(mdp: MDP, max_iter: int = 1000, gamma=1.0) -> np.ndarray
     """
     values = np.zeros(mdp.observation_space.n)
     # BEGIN SOLUTION
+    for _ in range(max_iter):
+        old_values = np.copy(values)
+
+        for state in range(mdp.observation_space.n):
+            action_values = []
+            for action in range(mdp.action_space.n):
+                next_state, reward, _ = mdp.P[state][action]
+
+                action_value = reward + gamma * values[next_state]
+                action_values.append(action_value)
+
+            values[state] = max(action_values)
+
+        if all(abs(a - b) < 0.01 for a, b in zip(values, old_values)):
+            break
+        old_values = values
+
     # END SOLUTION
     return values
 
@@ -40,9 +57,31 @@ def grid_world_value_iteration(
     Estimation de la fonction de valeur grâce à l'algorithme "value iteration".
     theta est le seuil de convergence (différence maximale entre deux itérations).
     """
-    values = np.zeros((4, 4))
+    values = np.zeros((env.height, env.width))
     # BEGIN SOLUTION
+
+    for _ in range(max_iter):
+        old_values = values.copy()
+        convergence = 0
+        for row in range(env.height):
+            for col in range(env.width):
+                state = (row, col)
+                if env.grid[state] in {"W", "P", "N"}:
+                    continue
+                action_values = []
+                for action in range(env.action_space.n):
+                    env.set_state(row, col)
+                    next_state, reward, is_done, _ = env.step(action, make_move=False)
+
+                    action_value = reward + gamma * values[next_state]
+                    action_values.append(action_value)
+                values[state] = max(action_values)
+                convergence = max(convergence, abs(values[state] - old_values[state]))
+        if convergence < theta:
+            break
+
     # END SOLUTION
+    return values
 
 
 def value_iteration_per_state(env, values, gamma, prev_val, delta):
@@ -72,3 +111,5 @@ def stochastic_grid_world_value_iteration(
 ) -> np.ndarray:
     values = np.zeros((4, 4))
     # BEGIN SOLUTION
+    # END SOLUTION
+    return values
