@@ -65,18 +65,19 @@ def grid_world_value_iteration(
         convergence = 0
         for row in range(env.height):
             for col in range(env.width):
-                state = (row, col)
-                if env.grid[state] in {"W", "P", "N"}:
+                if env.grid[row, col] in {"W", "P", "N"}:
                     continue
                 action_values = []
                 for action in range(env.action_space.n):
                     env.set_state(row, col)
-                    next_state, reward, is_done, _ = env.step(action, make_move=False)
+                    next_state, reward, _, _ = env.step(action, make_move=False)
 
                     action_value = reward + gamma * values[next_state]
                     action_values.append(action_value)
-                values[state] = max(action_values)
-                convergence = max(convergence, abs(values[state] - old_values[state]))
+                values[row, col] = max(action_values)
+                convergence = max(
+                    convergence, abs(values[row, col] - old_values[row, col])
+                )
         if convergence < theta:
             break
         old_values = values
@@ -114,16 +115,23 @@ def stochastic_grid_world_value_iteration(
     # BEGIN SOLUTION
     for _ in range(max_iter):
         old_values = values.copy()
-        delta = 0
-        for r in range(env.height):
-            row = env.height - r - 1
+        convergence = 0
+        for row in range(env.height):
             for col in range(env.width):
-                state = (row, col)
-                if env.grid[state] in {"W", "P", "N"}:
+                if env.grid[row, col] in {"W", "P", "N"}:
                     continue
-                d = value_iteration_per_state(env, values, gamma, old_values, delta)
-                delta = max(delta, d)
-        if delta < theta:
+                action_values = []
+                for action in range(env.action_space.n):
+                    env.set_state(row, col)
+                    next_states = env.get_next_states(action)
+
+                    action_value = 0
+                    for next_state, reward, prob, _, _ in next_states:
+                        action_value += prob * (reward + gamma * values[next_state])
+                    action_values.append(action_value)
+                values[row, col] = max(action_values)
+                convergence = max(convergence, abs(values[row, col] - old_values[row, col]))
+        if convergence < theta:
             break
         old_values = values
     # END SOLUTION
